@@ -73,5 +73,11 @@ export const getYouTubeThumbnail = (url) => {
 export const getInstructors = (course) =>
   course?.instructors?.map((i) => i.name).join(", ");
 
-export const getCoursePrice = (course) =>
-  course?.pricing === "Free" ? "Free" : `${course.currency} ${course.price}`;
+export const getCoursePrice = (course) => {
+  if (!course?.pricing || course.pricing === "Free") {
+    return "Free";
+  }
+  return course.currency && course.price
+    ? `${course.currency} ${course.price}`
+    : "Free";
+};

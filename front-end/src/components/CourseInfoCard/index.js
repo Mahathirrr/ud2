@@ -3,7 +3,7 @@ import Image from "next/image";
 import { useRouter } from "next/router";
 
 import CourseInfoPopover from "../CourseInfoPopover";
-import { getInstructors, getYouTubeThumbnail } from "src/utils";
+import { getInstructors, getYouTubeThumbnail, getCoursePrice } from "src/utils";
 
 const CourseInfoCard = (props) => {
   const router = useRouter();
@@ -24,11 +24,7 @@ const CourseInfoCard = (props) => {
         <div className="text-base pb-3">
           <h2>{course.title}</h2>
           <p className="text-labelText text-sm">{getInstructors(course)}</p>
-          <p className="font-medium">
-            {course?.pricing === "Free"
-              ? "Free"
-              : `${course.currency} ${course.price}`}
-          </p>
+          <p className="font-medium">{getCoursePrice(course)}</p>
         </div>
       </div>
     </CourseInfoPopover>

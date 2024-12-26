@@ -3,6 +3,7 @@ import { User } from "../models/user";
 import { comparePassword, hashPassword } from "../utils";
 import { interests } from "../data/interests";
 import { uploadToCloudinary } from "../utils/cloudinary";
+import { Course } from "../models/course";
 
 const currentUser = async (req, res) => {
   try {
@@ -184,18 +185,18 @@ const checkout = async (req, res) => {
     const { _id } = req.user;
     const { ids } = req.body;
 
+    if (!_id) {
+      return res.status(400).send("Missing user id");
+    }
+
+    if (!ids || !ids.length) {
+      return res.status(404).send("No courses to checkout");
+    }
+
     const enrolledCourses = ids.map((id) => ({
       course: id,
       enrolledOn: new Date().toISOString(),
     }));
-
-    if (!_id) {
-      return res.status(400);
-    }
-
-    if (!ids.length) {
-      return res.status(404);
-    }
 
     const [_, user] = await Promise.all([
       Course.updateMany(
@@ -229,8 +230,8 @@ const checkout = async (req, res) => {
 
     return res.status(200).json(user);
   } catch (error) {
-    console.log(error);
-    res.status(401).json(error);
+    console.error("Checkout error:", error);
+    return res.status(401).json(error);
   }
 };
 
