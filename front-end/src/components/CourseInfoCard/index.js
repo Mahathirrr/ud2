@@ -1,11 +1,9 @@
-import React from 'react';
-import Image from 'next/image';
-import { useRouter } from 'next/router';
+import React from "react";
+import Image from "next/image";
+import { useRouter } from "next/router";
 
-import CourseInfoPopover from '../CourseInfoPopover';
-import { getInstructors } from 'src/utils';
-
-import Books from 'public/assets/books.svg';
+import CourseInfoPopover from "../CourseInfoPopover";
+import { getInstructors, getYouTubeThumbnail } from "src/utils";
 
 const CourseInfoCard = (props) => {
   const router = useRouter();
@@ -15,14 +13,20 @@ const CourseInfoCard = (props) => {
 
   return (
     <CourseInfoPopover course={course}>
-      <div onClick={handleClick} className='cursor-pointer'>
-        <Image src={Books} alt='books' width='300' height='170' />
-        <div className='text-base pb-3'>
+      <div onClick={handleClick} className="cursor-pointer">
+        <Image
+          src={getYouTubeThumbnail(course.previewMedia)}
+          alt={course.title}
+          width="300"
+          height="170"
+          objectFit="cover"
+        />
+        <div className="text-base pb-3">
           <h2>{course.title}</h2>
-          <p className='text-labelText text-sm'>{getInstructors(course)}</p>
-          <p className='font-medium'>
-            {course?.pricing === 'Free'
-              ? 'Free'
+          <p className="text-labelText text-sm">{getInstructors(course)}</p>
+          <p className="font-medium">
+            {course?.pricing === "Free"
+              ? "Free"
               : `${course.currency} ${course.price}`}
           </p>
         </div>

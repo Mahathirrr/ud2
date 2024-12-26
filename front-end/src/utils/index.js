@@ -1,14 +1,14 @@
-export const isBrowser = () => typeof window !== 'undefined';
+export const isBrowser = () => typeof window !== "undefined";
 
 export const getInitials = (name) =>
   name
-    .split(' ')
+    .split(" ")
     .map((name) => name[0])
-    .join('');
+    .join("");
 
 export const getCourseDuration = (duration) => {
   if (duration) {
-    const durationArray = duration.split(':');
+    const durationArray = duration.split(":");
     const hours = durationArray[0];
     const mins = durationArray[1];
 
@@ -26,11 +26,11 @@ export const getCourseDuration = (duration) => {
 
 export const getChapterDuration = (duration) => {
   if (duration) {
-    const durationArray = duration.split(':');
+    const durationArray = duration.split(":");
     const hours = durationArray[0];
     const mins = durationArray[1];
 
-    if (hours !== '00') {
+    if (hours !== "00") {
       return `${hours}hr ${mins}min`;
     }
 
@@ -47,13 +47,31 @@ export const scrollElementIntoView = (id) => {
 
   if (element) {
     element.scrollIntoView({
-      behavior: 'smooth',
+      behavior: "smooth",
     });
   }
 };
 
+export const getYouTubeVideoId = (url) => {
+  if (!url) return null;
+
+  // Handle different YouTube URL formats
+  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+  const match = url.match(regExp);
+
+  return match && match[2].length === 11 ? match[2] : null;
+};
+
+export const getYouTubeThumbnail = (url) => {
+  const videoId = getYouTubeVideoId(url);
+  if (!videoId) return "/assets/books.svg"; // Fallback to default image
+
+  // Return high quality thumbnail
+  return `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+};
+
 export const getInstructors = (course) =>
-  course?.instructors?.map((i) => i.name).join(', ');
+  course?.instructors?.map((i) => i.name).join(", ");
 
 export const getCoursePrice = (course) =>
-  course?.pricing === 'Free' ? 'Free' : `${course.currency} ${course.price}`;
+  course?.pricing === "Free" ? "Free" : `${course.currency} ${course.price}`;
