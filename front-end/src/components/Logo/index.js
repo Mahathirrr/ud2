@@ -1,5 +1,5 @@
-import Link from 'next/link';
-import Image from 'next/image';
+import Link from "next/link";
+import Image from "next/image";
 
 const Logo = (props) => {
   const { variant } = props;
@@ -13,7 +13,7 @@ const Logo = (props) => {
       width: 150,
       height: 40,
     },
-    'header-md': {
+    "header-md": {
       width: 145,
       height: 35,
     },
@@ -24,12 +24,12 @@ const Logo = (props) => {
   };
 
   return (
-    <div className={variant === 'header' && 'mt-2'}>
-      <Link href='/'>
+    <div className={variant === "header" && "mt-2"}>
+      <Link href="/">
         <a>
           <Image
-            src='/assets/learnlit.svg'
-            alt='learnlit'
+            src="/assets/skillopa.svg"
+            alt="skillopa"
             {...variants[variant]}
           />
         </a>

@@ -34,8 +34,23 @@ const curriculum = new Schema({
         maxLength: 80,
         required: true,
       },
-      class: { type: String, required: true, enum: ["Lecture", "Quiz"] },
-      embedUrl: { type: String, required: true },
+      class: {
+        type: String,
+        required: true,
+        enum: ["Lecture", "Quiz", "Text"],
+      },
+      embedUrl: {
+        type: String,
+        required: function () {
+          return this.class === "Lecture" || this.class === "Quiz";
+        },
+      },
+      textContent: {
+        type: String,
+        required: function () {
+          return this.class === "Text";
+        },
+      },
       duration: String,
     },
   ],

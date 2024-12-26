@@ -5,6 +5,7 @@ import { useSelector, useDispatch } from "react-redux";
 import Button from "src/components/Button";
 import DropdownInput from "src/components/DropdownInput";
 import Input from "src/components/Input";
+import RichTextEditor from "src/components/RichTextEditor";
 
 import { addLecture, editLecture } from "redux/slice/course";
 
@@ -42,14 +43,16 @@ const LectureForm = () => {
       class: "",
       duration: "",
       embedUrl: "",
+      textContent: "",
     },
   });
 
-  // Watch embedUrl field for changes
+  // Watch class and embedUrl fields for changes
+  const contentClass = watch("class");
   const embedUrl = watch("embedUrl");
 
   useEffect(() => {
-    if (embedUrl) {
+    if (embedUrl && contentClass === "Lecture") {
       const videoId = getYouTubeVideoId(embedUrl);
       if (videoId) {
         // Fetch video duration from YouTube API
@@ -70,7 +73,7 @@ const LectureForm = () => {
           );
       }
     }
-  }, [embedUrl, setValue]);
+  }, [embedUrl, contentClass, setValue]);
 
   useEffect(() => {
     if (isEditMode) {
@@ -87,6 +90,10 @@ const LectureForm = () => {
         shouldDirty: true,
       });
       setValue("embedUrl", currLectureData.embedUrl, {
+        shouldValidate: true,
+        shouldDirty: true,
+      });
+      setValue("textContent", currLectureData.textContent, {
         shouldValidate: true,
         shouldDirty: true,
       });
@@ -141,7 +148,11 @@ const LectureForm = () => {
             render={({ field, fieldState: { error } }) => (
               <DropdownInput
                 label="Class Type"
-                data={[{ title: "Lecture" }, { title: "Quiz" }]}
+                data={[
+                  { title: "Lecture" },
+                  { title: "Quiz" },
+                  { title: "Text" },
+                ]}
                 error={!!error}
                 helperText={error ? error.message : null}
                 required
@@ -154,48 +165,71 @@ const LectureForm = () => {
             )}
           />
 
+          {contentClass === "Lecture" && (
+            <Controller
+              name="duration"
+              control={control}
+              render={({ field, fieldState: { error } }) => (
+                <Input
+                  label="Duration (Auto-detected)"
+                  type="time"
+                  inputProps={{ step: 2 }}
+                  placeholder="duration"
+                  error={!!error}
+                  helperText={error ? error.message : null}
+                  disabled
+                  {...field}
+                  className="w-1/2"
+                />
+              )}
+            />
+          )}
+        </div>
+
+        {(contentClass === "Lecture" || contentClass === "Quiz") && (
           <Controller
-            name="duration"
+            name="embedUrl"
             control={control}
+            rules={{
+              required: "YouTube URL is required for video content.",
+              pattern: {
+                value: /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.?be)\/.+$/,
+                message: "Please enter a valid YouTube URL",
+              },
+            }}
             render={({ field, fieldState: { error } }) => (
               <Input
-                label="Duration (Auto-detected)"
-                type="time"
-                inputProps={{ step: 2 }}
-                placeholder="duration"
+                label="YouTube URL"
+                type="url"
+                placeholder="https://www.youtube.com/watch?v=..."
                 error={!!error}
                 helperText={error ? error.message : null}
-                disabled
+                required
                 {...field}
-                className="w-1/2"
+                className="w-full"
               />
             )}
           />
-        </div>
+        )}
 
-        <Controller
-          name="embedUrl"
-          control={control}
-          rules={{
-            required: "YouTube URL is required.",
-            pattern: {
-              value: /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.?be)\/.+$/,
-              message: "Please enter a valid YouTube URL",
-            },
-          }}
-          render={({ field, fieldState: { error } }) => (
-            <Input
-              label="YouTube URL"
-              type="url"
-              placeholder="https://www.youtube.com/watch?v=..."
-              error={!!error}
-              helperText={error ? error.message : null}
-              required
-              {...field}
-              className="w-full"
-            />
-          )}
-        />
+        {contentClass === "Text" && (
+          <Controller
+            name="textContent"
+            control={control}
+            rules={{
+              required: "Text content is required.",
+            }}
+            render={({ field, fieldState: { error } }) => (
+              <RichTextEditor
+                label="Content"
+                required
+                {...field}
+                error={!!error}
+                helperText={error ? error.message : null}
+              />
+            )}
+          />
+        )}
       </form>
 
       <Button
