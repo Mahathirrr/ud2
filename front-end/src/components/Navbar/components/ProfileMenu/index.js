@@ -1,19 +1,20 @@
-import React, { useState } from 'react';
-import { useRouter } from 'next/router';
-import { useDispatch, useSelector } from 'react-redux';
+import React, { useState } from "react";
+import { useRouter } from "next/router";
+import { useDispatch, useSelector } from "react-redux";
 
-import Avatar from '@mui/material/Avatar';
-import Menu from '@mui/material/Menu';
-import MenuItem from '@mui/material/MenuItem';
-import ListItemIcon from '@mui/material/ListItemIcon';
-import Divider from '@mui/material/Divider';
-import Settings from '@mui/icons-material/Settings';
-import Logout from '@mui/icons-material/Logout';
-import CastForEducationIcon from '@mui/icons-material/CastForEducation';
+import Avatar from "@mui/material/Avatar";
+import Menu from "@mui/material/Menu";
+import MenuItem from "@mui/material/MenuItem";
+import ListItemIcon from "@mui/material/ListItemIcon";
+import Divider from "@mui/material/Divider";
+import Settings from "@mui/icons-material/Settings";
+import Logout from "@mui/icons-material/Logout";
+import CastForEducationIcon from "@mui/icons-material/CastForEducation";
+import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 
-import { getInitials } from 'src/utils';
-import { logout } from 'redux/slice/auth';
-import { becomeInstructor } from 'redux/slice/instructor';
+import { getInitials } from "src/utils";
+import { logout } from "redux/slice/auth";
+import { becomeInstructor } from "redux/slice/instructor";
 
 export default function AccountMenu() {
   const dispatch = useDispatch();
@@ -24,32 +25,43 @@ export default function AccountMenu() {
 
   const { profile } = useSelector((state) => state.auth);
   const { profile: instructorProfile } = useSelector(
-    (state) => state.instructor
+    (state) => state.instructor,
   );
 
   const handleBecomeInstructor = () => {
     dispatch(becomeInstructor());
   };
 
-  const menus =
-    profile?.role.includes('Instructor') || instructorProfile
+  const handleProfileSettings = () => {
+    router.push("/settings/profile");
+    handleClose();
+  };
+
+  const menus = [
+    {
+      icon: AccountCircleIcon,
+      label: "Profile Settings",
+      handleClick: handleProfileSettings,
+    },
+    ...(profile?.role.includes("Instructor") || instructorProfile
       ? [
           {
             icon: Settings,
-            label: 'Settings',
+            label: "Settings",
           },
         ]
       : [
           {
             icon: CastForEducationIcon,
-            label: 'Become an Instructor',
+            label: "Become an Instructor",
             handleClick: handleBecomeInstructor,
           },
           {
             icon: Settings,
-            label: 'Settings',
+            label: "Settings",
           },
-        ];
+        ]),
+  ];
 
   const handleClick = (event) => {
     setAnchorEl(event.currentTarget);
@@ -61,17 +73,18 @@ export default function AccountMenu() {
 
   const handleLogout = () => {
     dispatch(logout());
-    router.push('/');
+    router.push("/");
   };
 
   return (
     <React.Fragment>
       <Avatar
         alt={profile?.name}
-        className='cursor-pointer'
+        src={profile?.avatar}
+        className="cursor-pointer"
         onMouseOver={handleClick}
       >
-        {profile && getInitials(profile.name)}
+        {profile && !profile.avatar && getInitials(profile.name)}
       </Avatar>
       <Menu
         anchorEl={anchorEl}
@@ -82,41 +95,44 @@ export default function AccountMenu() {
         PaperProps={{
           elevation: 0,
           sx: {
-            overflow: 'visible',
-            filter: 'drop-shadow(0px 2px 8px rgba(0,0,0,0.32))',
+            overflow: "visible",
+            filter: "drop-shadow(0px 2px 8px rgba(0,0,0,0.32))",
             mt: 1.5,
-            '& .MuiAvatar-root': {
+            "& .MuiAvatar-root": {
               width: 32,
               height: 32,
               ml: -0.5,
               mr: 1,
             },
-            '&:before': {
+            "&:before": {
               content: '""',
-              display: 'block',
-              position: 'absolute',
+              display: "block",
+              position: "absolute",
               top: 0,
               right: 14,
               width: 10,
               height: 10,
-              bgcolor: 'background.paper',
-              transform: 'translateY(-50%) rotate(45deg)',
+              bgcolor: "background.paper",
+              transform: "translateY(-50%) rotate(45deg)",
               zIndex: 0,
             },
           },
         }}
-        transformOrigin={{ horizontal: 'right', vertical: 'top' }}
-        anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+        transformOrigin={{ horizontal: "right", vertical: "top" }}
+        anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
       >
         <MenuItem>
-          <Avatar /> My account
+          <Avatar src={profile?.avatar}>
+            {profile && !profile.avatar && getInitials(profile.name)}
+          </Avatar>
+          {profile?.name}
         </MenuItem>
         <Divider />
         {menus.map((item, index) => {
           return (
             <MenuItem key={index} onClick={item?.handleClick}>
               <ListItemIcon>
-                <item.icon />
+                <item.icon fontSize="small" />
               </ListItemIcon>
               {item.label}
             </MenuItem>
@@ -125,7 +141,7 @@ export default function AccountMenu() {
 
         <MenuItem onClick={handleLogout}>
           <ListItemIcon>
-            <Logout fontSize='small' />
+            <Logout fontSize="small" />
           </ListItemIcon>
           Logout
         </MenuItem>

@@ -18,10 +18,12 @@
   "homepage": "https://github.com/rishavbharti/learnlit-backend#readme",
   "dependencies": {
     "bcrypt": "^5.0.1",
+    "cloudinary": "^1.41.3",
     "cors": "^2.8.5",
     "dotenv": "^10.0.0",
     "esm": "^3.2.25",
     "express": "^4.17.1",
+    "express-fileupload": "^1.5.1",
     "express-jwt": "^6.1.0",
     "google-auth-library": "^8.9.0",
     "jsonwebtoken": "^8.5.1",

@@ -14,6 +14,7 @@ const initialState = {
   getWishlist: { loading: false, error: false, success: false },
   addRemoveWishlist: { loading: false, error: false, success: false },
   getEnrolledCourses: { loading: false, error: false, success: false },
+  updateProfile: { loading: false, error: false, success: false },
   isAuthenticated: false,
   errorMessage: "",
   profile: null,
@@ -222,6 +223,25 @@ export const getEnrolledCourses = createAsyncThunk(
   },
 );
 
+export const updateProfile = createAsyncThunk(
+  "auth/updateProfile",
+  async (formData, { rejectWithValue }) => {
+    try {
+      const response = await axios.put(`${API}/user/profile`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+      return response.data;
+    } catch (error) {
+      if (!error.response) {
+        throw error;
+      }
+      return rejectWithValue(error.response.data.errorMessage);
+    }
+  },
+);
+
 export const authSlice = createSlice({
   name: "auth",
   initialState,
@@ -233,6 +253,9 @@ export const authSlice = createSlice({
     },
     resetCheckout(state) {
       Object.assign(state.checkout, initialState.checkout);
+    },
+    resetProfileUpdate(state) {
+      state.updateProfile = initialState.updateProfile;
     },
   },
   extraReducers: (builder) => {
@@ -439,17 +462,32 @@ export const authSlice = createSlice({
         state.getEnrolledCourses.loading = false;
         state.getEnrolledCourses.success = true;
         state.getEnrolledCourses.error = false;
-
         state.profile.enrolledCoursesData = action.payload;
       })
       .addCase(getEnrolledCourses.rejected, (state) => {
         state.getEnrolledCourses.loading = false;
         state.getEnrolledCourses.error = true;
+      })
+
+      .addCase(updateProfile.pending, (state) => {
+        state.updateProfile.loading = true;
+        state.updateProfile.error = false;
+        state.updateProfile.success = false;
+      })
+      .addCase(updateProfile.fulfilled, (state, action) => {
+        state.updateProfile.loading = false;
+        state.updateProfile.success = true;
+        state.updateProfile.error = false;
+        state.profile = action.payload;
+      })
+      .addCase(updateProfile.rejected, (state, action) => {
+        state.updateProfile.loading = false;
+        state.updateProfile.error = action.payload;
+        state.updateProfile.success = false;
       });
   },
 });
 
-export const { logout, resetCheckout } = authSlice.actions;
+export const { logout, resetCheckout, resetProfileUpdate } = authSlice.actions;
 
 export default authSlice.reducer;
-

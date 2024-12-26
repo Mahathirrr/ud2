@@ -1,15 +1,18 @@
-import { User } from '../models/user';
-import { Course } from '../models/course';
+import jwt from "jsonwebtoken";
+import { User } from "../models/user";
+import { comparePassword, hashPassword } from "../utils";
+import { interests } from "../data/interests";
+import { uploadToCloudinary } from "../utils/cloudinary";
 
 const currentUser = async (req, res) => {
   try {
-    const user = await User.findById(req.user._id).select('-password').exec();
+    const user = await User.findById(req.user._id).select("-password").exec();
 
     if (user) {
       return res.json(user);
     }
 
-    return res.status(404).send('User not found.');
+    return res.status(404).send("User not found.");
   } catch (error) {
     console.error(error);
     res.status(401).json(error);
@@ -24,7 +27,7 @@ const addToCart = async (req, res) => {
     const { _id } = req.user;
 
     if (!_id) {
-      return res.status(400).send('Missing user id');
+      return res.status(400).send("Missing user id");
     }
 
     const data = await User.findByIdAndUpdate(
@@ -38,7 +41,7 @@ const addToCart = async (req, res) => {
         new: true,
         strict: false,
       }
-    ).select('cart');
+    ).select("cart");
 
     return res.status(200).send(data.cart);
   } catch (error) {
@@ -54,7 +57,7 @@ const removeFromCart = async (req, res) => {
     const { _id } = req.user;
 
     if (!_id) {
-      return res.status(400).send('Missing user id');
+      return res.status(400).send("Missing user id");
     }
 
     await User.findByIdAndUpdate(_id, {
@@ -75,20 +78,20 @@ const getCart = async (req, res) => {
     const { _id } = req.user;
 
     if (!_id) {
-      return res.status(400).send('Missing user id');
+      return res.status(400).send("Missing user id");
     }
 
     const data = await User.findById(_id)
       .lean()
       .populate({
-        path: 'cart',
-        select: 'title instructors level pricing currency price duration slug',
+        path: "cart",
+        select: "title instructors level pricing currency price duration slug",
         populate: {
-          path: 'instructors',
-          select: 'name',
+          path: "instructors",
+          select: "name",
         },
       })
-      .select('cart');
+      .select("cart");
 
     return res.status(200).send(data.cart);
   } catch (error) {
@@ -104,7 +107,7 @@ const addToWishlist = async (req, res) => {
     const { _id } = req.user;
 
     if (!_id) {
-      return res.status(400).send('Missing user id');
+      return res.status(400).send("Missing user id");
     }
 
     const data = await User.findByIdAndUpdate(
@@ -118,7 +121,7 @@ const addToWishlist = async (req, res) => {
         new: true,
         strict: false,
       }
-    ).select('wishlist');
+    ).select("wishlist");
 
     return res.status(200).json(data.wishlist);
   } catch (error) {
@@ -134,7 +137,7 @@ const removeFromWishlist = async (req, res) => {
     const { _id } = req.user;
 
     if (!_id) {
-      return res.status(400).send('Missing user id');
+      return res.status(400).send("Missing user id");
     }
 
     await User.findByIdAndUpdate(_id, {
@@ -155,20 +158,20 @@ const getWishlist = async (req, res) => {
     const { _id } = req.user;
 
     if (!_id) {
-      return res.status(400).send('Missing user id');
+      return res.status(400).send("Missing user id");
     }
 
     const data = await User.findById(_id)
       .lean()
       .populate({
-        path: 'wishlist',
-        select: '-meta -curriculum',
+        path: "wishlist",
+        select: "-meta -curriculum",
         populate: {
-          path: 'instructors',
-          select: 'name',
+          path: "instructors",
+          select: "name",
         },
       })
-      .select('wishlist');
+      .select("wishlist");
 
     return res.status(200).send(data.wishlist);
   } catch (error) {
@@ -196,10 +199,10 @@ const checkout = async (req, res) => {
 
     const [_, user] = await Promise.all([
       Course.updateMany(
-        { _id: { $in: ids }, pricing: { $eq: 'Free' } },
+        { _id: { $in: ids }, pricing: { $eq: "Free" } },
         {
           $addToSet: {
-            'meta.enrollments': { id: _id },
+            "meta.enrollments": { id: _id },
           },
         },
         {
@@ -221,7 +224,7 @@ const checkout = async (req, res) => {
         }
       )
         .lean()
-        .select('cart wishlist enrolledCourses'),
+        .select("cart wishlist enrolledCourses"),
     ]);
 
     return res.status(200).json(user);
@@ -237,13 +240,62 @@ const getEnrolledCourses = async (req, res) => {
 
     const data = await User.findById(_id)
       .lean()
-      .populate({ path: 'enrolledCourses.course', select: '-meta -curriculum' })
-      .select('enrolledCourses');
+      .populate({ path: "enrolledCourses.course", select: "-meta -curriculum" })
+      .select("enrolledCourses");
 
     return res.status(200).send(data.enrolledCourses);
   } catch (error) {
     console.error(error);
     return res.status(401).json(error);
+  }
+};
+
+const updateProfile = async (req, res) => {
+  try {
+    const { _id } = req.user;
+    const { name } = req.body;
+    const { files } = req;
+    const avatar = files ? files.avatar : undefined;
+
+    if (!_id) {
+      return res.status(400).send("Missing user id");
+    }
+
+    let updateData = {};
+
+    // Handle name update if provided
+    if (name) {
+      updateData.name = name;
+    }
+
+    // Handle avatar update if provided
+    if (avatar) {
+      try {
+        const result = await uploadToCloudinary(avatar.tempFilePath);
+        updateData.avatar = result.secure_url;
+      } catch (error) {
+        console.error("Cloudinary upload error:", error);
+        return res.status(400).json({ errorMessage: "Error uploading image" });
+      }
+    }
+
+    // Only update if we have changes
+    if (Object.keys(updateData).length === 0) {
+      return res.status(400).json({ errorMessage: "No update data provided" });
+    }
+
+    const user = await User.findByIdAndUpdate(_id, updateData, {
+      new: true,
+    }).select("-password");
+
+    if (!user) {
+      return res.status(404).json({ errorMessage: "User not found" });
+    }
+
+    return res.status(200).json(user);
+  } catch (error) {
+    console.error(error);
+    return res.status(400).json({ errorMessage: error.message });
   }
 };
 
@@ -257,4 +309,5 @@ export {
   removeFromWishlist,
   checkout,
   getEnrolledCourses,
+  updateProfile,
 };
