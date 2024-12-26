@@ -9,11 +9,7 @@ import MuiAccordionSummary from "@mui/material/AccordionSummary";
 import MuiAccordionDetails from "@mui/material/AccordionDetails";
 
 import ChapterItem from "../ChapterItem";
-import {
-  calculateTotalDuration,
-  getChapterDuration,
-  calculateCourseStats,
-} from "src/utils/duration";
+import { calculateTotalDuration, getChapterDuration } from "src/utils/duration";
 import { scrollElementIntoView } from "src/utils";
 
 const Accordion = styled((props) => (
@@ -63,36 +59,6 @@ export default function CurriculumAccordion(props) {
     setExpanded([...expanded, currChapterIndex]);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currChapterIndex]);
-
-  const renderCourseSummary = () => {
-    if (!data?.curriculum?.length) return null;
-
-    const { totalChapters, totalLectures, totalDuration } =
-      calculateCourseStats(data.curriculum);
-    const chapterText = totalChapters === 1 ? "chapter" : "chapters";
-    const lectureText = totalLectures === 1 ? "lecture" : "lectures";
-    const duration = getChapterDuration(totalDuration);
-
-    return (
-      <div className="mb-4 text-sm text-labelText">
-        <p className="flex items-center gap-2">
-          <span>
-            {totalChapters} {chapterText}
-          </span>
-          <span>•</span>
-          <span>
-            {totalLectures} {lectureText}
-          </span>
-          {duration && (
-            <>
-              <span>•</span>
-              <span>{duration} total</span>
-            </>
-          )}
-        </p>
-      </div>
-    );
-  };
 
   const renderLectures = (lectures) => {
     return lectures.map((lecture, index) => {
@@ -162,14 +128,11 @@ export default function CurriculumAccordion(props) {
     );
   };
 
-  const renderAccordion = () => (
-    <>
-      {renderCourseSummary()}
+  return (
+    <div>
       {data?.curriculum.map((chapter, index) => renderChapter(chapter, index))}
-    </>
+    </div>
   );
-
-  return <div>{renderAccordion()}</div>;
 }
 
 CurriculumAccordion.propTypes = {
