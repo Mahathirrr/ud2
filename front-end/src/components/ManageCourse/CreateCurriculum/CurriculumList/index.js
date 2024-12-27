@@ -69,9 +69,9 @@ export default function CurriculumList() {
 
   useEffect(() => {
     if (currChapterIndex !== null && !expanded.includes(currChapterIndex)) {
-      setExpanded([...expanded, currChapterIndex]);
+      setExpanded((prev) => [...prev, currChapterIndex]);
     }
-  }, [currChapterIndex]);
+  }, [currChapterIndex, expanded]);
 
   const handleChapterClick = (index, chapter) => {
     dispatch(setCurrChapterIndex(index));

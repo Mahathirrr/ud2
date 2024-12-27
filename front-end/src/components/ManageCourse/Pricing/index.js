@@ -95,8 +95,8 @@ const Pricing = ({ setIsPristine }) => {
         {watchPricing === "Paid" && (
           <>
             <Alert severity="info" className="mb-4">
-              For paid courses, you'll need to set up your bank account details
-              in the Settings tab to receive payments.
+              For paid courses, you&apos;ll need to set up your bank account
+              details in the Settings tab to receive payments.
             </Alert>
             <div className="flex items-center gap-5">
               <Controller

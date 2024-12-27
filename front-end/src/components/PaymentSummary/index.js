@@ -1,8 +1,7 @@
 import React from "react";
-import { useSelector } from "react-redux";
 
 const PaymentSummary = ({ course }) => {
-  const { profile } = useSelector((state) => state.auth);
+  // const { profile } = useSelector((state) => state.auth);
 
   const calculatePlatformFee = (price) => {
     return Math.round(price * 0.1); // 10% platform fee
@@ -56,8 +55,8 @@ const PaymentSummary = ({ course }) => {
                 Payments are secured and processed by Midtrans Payment Gateway
               </p>
               <p className="mt-2">
-                After successful payment, you'll get immediate access to the
-                course
+                After successful payment, You&apos;ll get immediate access to
+                the course
               </p>
             </>
           )}

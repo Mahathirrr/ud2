@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
-import PropTypes from "prop-types";
 import classnames from "classnames";
 import { styled } from "@mui/material/styles";
 import ArrowForwardIosSharpIcon from "@mui/icons-material/ArrowForwardIosSharp";
@@ -47,33 +46,28 @@ const AccordionDetails = styled(MuiAccordionDetails)(({ theme }) => ({
 }));
 
 export default function CurriculumAccordion(props) {
-  const { viewOnly, handleItemClick, activeChapterItem, previewMode } = props;
-  const [expandedPanels, setExpandedPanels] = useState(new Set());
+  const { viewOnly, handleItemClick, activeChapterItem } = props;
+  const [expandedPanels, setExpandedPanels] = useState([]);
   const { data } = useSelector((state) => state.courses.course);
-  const { profile } = useSelector((state) => state.auth);
-  const isInstructor = profile?.role === "instructor";
 
   useEffect(() => {
     if (activeChapterItem && data?.curriculum) {
       const chapterIndex = data.curriculum.findIndex((chapter) =>
         chapter.content.some((item) => item._id === activeChapterItem._id),
       );
-      if (chapterIndex !== -1 && !expandedPanels.has(chapterIndex)) {
-        setExpandedPanels(new Set([...expandedPanels, chapterIndex]));
+      if (chapterIndex !== -1 && !expandedPanels.includes(chapterIndex)) {
+        setExpandedPanels((prev) => [...prev, chapterIndex]);
       }
     }
-  }, [activeChapterItem, data?.curriculum]);
+  }, [activeChapterItem, data?.curriculum, expandedPanels]);
 
   const handleAccordionChange = (index) => (event, newExpanded) => {
     event.stopPropagation();
     setExpandedPanels((prevPanels) => {
-      const newPanels = new Set(prevPanels);
       if (newExpanded) {
-        newPanels.add(index);
-      } else {
-        newPanels.delete(index);
+        return [...prevPanels, index];
       }
-      return newPanels;
+      return prevPanels.filter((panel) => panel !== index);
     });
   };
 
@@ -81,7 +75,6 @@ export default function CurriculumAccordion(props) {
     return lectures.map((lecture, index) => {
       const handleClick = (event) => {
         event.stopPropagation();
-        // Memperbolehkan klik untuk semua pengguna yang sudah login
         if (typeof handleItemClick === "function") {
           handleItemClick(lecture);
         }
@@ -114,7 +107,7 @@ export default function CurriculumAccordion(props) {
     return (
       <div className="border border-solid border-border" key={index}>
         <Accordion
-          expanded={expandedPanels.has(index)}
+          expanded={expandedPanels.includes(index)}
           onChange={handleAccordionChange(index)}
           TransitionProps={{ unmountOnExit: true }}
         >

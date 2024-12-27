@@ -1,8 +1,8 @@
-import React, { useEffect } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
-import CourseCarousel from '../CourseCarousel';
+import React, { useEffect } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import CourseCarousel from "../CourseCarousel";
 
-import { getCategoryCourses } from 'redux/slice/course';
+import { getCategoryCourses } from "redux/slice/course";
 
 const SectionList = (props) => {
   const {
@@ -22,7 +22,7 @@ const SectionList = (props) => {
         getCategoryCourses({
           stateName: title,
           [type]: [slug],
-        })
+        }),
       );
     }
   }, [dispatch]);
@@ -32,7 +32,7 @@ const SectionList = (props) => {
       title={title}
       data={categoryCourses?.[title]?.courses}
       loading={categoryCourses?.[title]?.loading}
-      className='h-36'
+      className="h-36"
     />
   );
 };

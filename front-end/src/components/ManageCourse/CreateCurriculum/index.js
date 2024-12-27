@@ -99,7 +99,7 @@ const CreateCurriculum = () => {
         </div>
       </div>
       <Alert severity="info" variant="outlined">
-        Here's where you add course content—like lectures, course sections,
+        Here&apos;s where you add course content—like lectures, course sections,
         assignments, and more. Click the button below to get started.
       </Alert>
       <div className="flex flex-col lg:flex-row gap-5 mt-5">
