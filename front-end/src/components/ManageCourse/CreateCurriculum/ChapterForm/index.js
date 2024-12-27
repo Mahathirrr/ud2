@@ -16,27 +16,37 @@ const ChapterForm = () => {
   const { control, handleSubmit, reset, setValue } = useForm({
     defaultValues: {
       chapterTitle: "",
+      duration: "",
     },
   });
 
   useEffect(() => {
-    if (isEditMode) {
-      setValue("chapterTitle", currChapterData.chapterTitle, {
-        shouldValidate: true,
-        shouldDirty: true,
+    if (isEditMode && currChapterData) {
+      setValue("chapterTitle", currChapterData.chapterTitle);
+      setValue("duration", currChapterData.duration || "");
+    } else {
+      reset({
+        chapterTitle: "",
+        duration: "",
       });
     }
-  }, [isEditMode, setValue, currChapterData]);
+  }, [isEditMode, currChapterData, setValue, reset]);
+
+  const onSubmit = (data) => {
+    if (isEditMode) {
+      dispatch(editChapter({ data }));
+    } else {
+      dispatch(addChapter({ data }));
+    }
+    reset();
+  };
 
   return (
     <div className="flex flex-col gap-3 h-min">
       <h2 className="text-lg font-semibold">
         {isEditMode ? "Edit Chapter" : "Add new Chapter"}
       </h2>
-      <form
-        onSubmit={(e) => e.preventDefault()}
-        className="flex flex-col gap-2"
-      >
+      <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-2">
         <Controller
           name="chapterTitle"
           control={control}
@@ -64,19 +74,19 @@ const ChapterForm = () => {
             />
           )}
         />
+
+        <div className="flex justify-end gap-2 mt-4">
+          <Button
+            label="Cancel"
+            variant="outlined"
+            onClick={() => {
+              reset();
+              dispatch({ type: "courses/setIsEditMode", payload: false });
+            }}
+          />
+          <Button label={isEditMode ? "Update" : "Add"} type="submit" />
+        </div>
       </form>
-
-      <Button
-        label={isEditMode ? "Update" : "Add"}
-        className="w-min ml-auto"
-        onClick={handleSubmit((data) => {
-          isEditMode
-            ? dispatch(editChapter({ data }))
-            : dispatch(addChapter({ data }));
-
-          reset();
-        })}
-      />
     </div>
   );
 };

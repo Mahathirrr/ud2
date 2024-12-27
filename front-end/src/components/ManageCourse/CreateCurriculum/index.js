@@ -72,11 +72,12 @@ const CreateCurriculum = () => {
       return <CurriculumPreview />;
     }
 
-    if (currLectureData) {
-      return <LectureContent lecture={currLectureData} />;
-    }
-
-    return renderForm();
+    return (
+      <div className="flex flex-col gap-5">
+        {currLectureData && <LectureContent lecture={currLectureData} />}
+        {renderForm()}
+      </div>
+    );
   };
 
   return (
@@ -102,22 +103,17 @@ const CreateCurriculum = () => {
         assignments, and more. Click the button below to get started.
       </Alert>
       <div className="flex flex-col lg:flex-row gap-5 mt-5">
-        <div className="w-full lg:w-7/12 bg-formBg p-3 h-min">
-          {renderContent()}
-        </div>
-        <div
-          className="w-full lg:w-5/12 bg-formBg flex flex-col gap-5 p-3"
-          style={{ maxHeight: "485px" }}
-        >
-          <div className="overflow-auto h-5/6">
+        <div className="w-full lg:w-7/12 bg-formBg p-3">{renderContent()}</div>
+        <div className="w-full lg:w-5/12 bg-formBg flex flex-col gap-5 p-3">
+          <div className="overflow-auto" style={{ maxHeight: "485px" }}>
             <CurriculumList previewMode={previewMode} />
           </div>
           {!previewMode && (
-            <div className="bg-tertiaryBg p-2 sticky">
+            <div className="bg-tertiaryBg p-2">
               <Button
                 label="Add new Chapter"
                 variant="transparent"
-                className="text-lg"
+                className="text-lg w-full"
                 startIcon={<AddCircleOutlineOutlinedIcon />}
                 onClick={showChapterForm}
               />

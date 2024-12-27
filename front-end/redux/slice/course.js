@@ -1,5 +1,5 @@
-import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
-import axios from 'axios';
+import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
+import axios from "axios";
 
 const API = process.env.NEXT_PUBLIC_API_ENDPOINT;
 
@@ -45,7 +45,7 @@ const initialState = {
 };
 
 export const getAllCourses = createAsyncThunk(
-  'courses/getAllCourses',
+  "courses/getAllCourses",
   async (_, { rejectWithValue }) => {
     try {
       const response = await axios.get(`${API}/all-courses`);
@@ -56,11 +56,11 @@ export const getAllCourses = createAsyncThunk(
       }
       return rejectWithValue(error.response.data.errorMessage);
     }
-  }
+  },
 );
 
 export const getCategoryCourses = createAsyncThunk(
-  'courses/getCategoryCourses',
+  "courses/getCategoryCourses",
   async ({ query, stateName, category, subCategory }, { rejectWithValue }) => {
     try {
       let response;
@@ -72,12 +72,12 @@ export const getCategoryCourses = createAsyncThunk(
         }
         if (category && subCategory) {
           response = await axios.get(
-            `${API}/courses?category=${category}&subCategory=${subCategory}`
+            `${API}/courses?category=${category}&subCategory=${subCategory}`,
           );
         }
         if (!category && subCategory) {
           response = await axios.get(
-            `${API}/courses?subCategory=${subCategory}`
+            `${API}/courses?subCategory=${subCategory}`,
           );
         }
       }
@@ -89,11 +89,11 @@ export const getCategoryCourses = createAsyncThunk(
       }
       return rejectWithValue(error.response.data.errorMessage);
     }
-  }
+  },
 );
 
 export const getPostedCourses = createAsyncThunk(
-  'courses/getPostedCourses',
+  "courses/getPostedCourses",
   async (_, { rejectWithValue }) => {
     try {
       const response = await axios.get(`${API}/me/posted-courses`);
@@ -104,11 +104,11 @@ export const getPostedCourses = createAsyncThunk(
       }
       return rejectWithValue(error.response.data.errorMessage);
     }
-  }
+  },
 );
 
 export const createCourse = createAsyncThunk(
-  'courses/createCourse',
+  "courses/createCourse",
   async (data, { rejectWithValue }) => {
     try {
       const response = await axios.post(`${API}/create-course`, { ...data });
@@ -119,11 +119,11 @@ export const createCourse = createAsyncThunk(
       }
       return rejectWithValue(error.response.data.errorMessage);
     }
-  }
+  },
 );
 
 export const updateCourse = createAsyncThunk(
-  'courses/updateCourse',
+  "courses/updateCourse",
   async (data, { rejectWithValue }) => {
     try {
       const response = await axios.put(`${API}/course/${data._id}`, {
@@ -136,11 +136,11 @@ export const updateCourse = createAsyncThunk(
       }
       return rejectWithValue(error.response.data.errorMessage);
     }
-  }
+  },
 );
 
 export const fetchCourse = createAsyncThunk(
-  'courses/fetchCourse',
+  "courses/fetchCourse",
   async (payload, { rejectWithValue }) => {
     try {
       const response = await axios.post(`${API}/get-course`, { ...payload });
@@ -151,11 +151,11 @@ export const fetchCourse = createAsyncThunk(
       }
       return rejectWithValue(error.response.data.errorMessage);
     }
-  }
+  },
 );
 
 export const coursesSlice = createSlice({
-  name: 'courses',
+  name: "courses",
   initialState,
   reducers: {
     addChapter(state, action) {
@@ -167,17 +167,24 @@ export const coursesSlice = createSlice({
       const { data } = action.payload;
       const chapterIndex = state.course.currChapterIndex;
 
-      const newCurriculum = state.course.data.curriculum.map(
-        (chapter, index) => {
-          if (index === chapterIndex) {
-            chapter.chapterTitle = data.chapterTitle;
-            chapter.duration = data?.duration;
-          }
-          return chapter;
-        }
-      );
-      state.course.data.curriculum = newCurriculum;
-      state.course.isEditMode = false;
+      if (chapterIndex !== null && chapterIndex >= 0) {
+        const newCurriculum = state.course.data.curriculum.map(
+          (chapter, index) => {
+            if (index === chapterIndex) {
+              return {
+                ...chapter,
+                chapterTitle: data.chapterTitle,
+                duration: data.duration,
+              };
+            }
+            return chapter;
+          },
+        );
+        state.course.data.curriculum = newCurriculum;
+        state.course.isEditMode = false;
+        state.course.currChapterIndex = null;
+        state.course.currChapterData = null;
+      }
     },
     addLecture(state, action) {
       const { data } = action.payload;
@@ -189,7 +196,7 @@ export const coursesSlice = createSlice({
             chapter.content = [...chapter.content, data];
           }
           return chapter;
-        }
+        },
       );
       state.course.data.curriculum = newCurriculum;
     },
@@ -198,26 +205,41 @@ export const coursesSlice = createSlice({
       const chapterIndex = state.course.currChapterIndex;
       const lectureIndex = state.course.currLectureIndex;
 
-      const newCurriculum = state.course.data.curriculum.map(
-        (chapter, index) => {
-          if (index === chapterIndex) {
-            const updatedContent = chapter.content.map((item, index) => {
-              if (index === lectureIndex) {
-                item = data;
-              }
-              return item;
-            });
-            chapter.content = updatedContent;
-          }
-          return chapter;
-        }
-      );
-      state.course.data.curriculum = newCurriculum;
-      state.course.isEditMode = false;
+      if (
+        chapterIndex !== null &&
+        chapterIndex >= 0 &&
+        lectureIndex !== null &&
+        lectureIndex >= 0
+      ) {
+        const newCurriculum = state.course.data.curriculum.map(
+          (chapter, index) => {
+            if (index === chapterIndex) {
+              const updatedContent = chapter.content.map((item, idx) => {
+                if (idx === lectureIndex) {
+                  return {
+                    ...item,
+                    ...data,
+                  };
+                }
+                return item;
+              });
+              return {
+                ...chapter,
+                content: updatedContent,
+              };
+            }
+            return chapter;
+          },
+        );
+        state.course.data.curriculum = newCurriculum;
+        state.course.isEditMode = false;
+        state.course.currLectureIndex = null;
+        state.course.currLectureData = null;
+      }
     },
     deleteChapter(state, action) {
       const updatedCurriculum = state.course.data.curriculum.filter(
-        (chapter, index) => index !== action.payload
+        (chapter, index) => index !== action.payload,
       );
       state.course.data.curriculum = updatedCurriculum;
     },
@@ -227,12 +249,12 @@ export const coursesSlice = createSlice({
         (chapter, index) => {
           if (index === chapterIndex) {
             const updatedContent = chapter.content.filter(
-              (item, index) => index !== lectureIndex
+              (item, index) => index !== lectureIndex,
             );
             chapter.content = updatedContent;
           }
           return chapter;
-        }
+        },
       );
       state.course.data.curriculum = updatedCurriculum;
     },

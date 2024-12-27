@@ -44,6 +44,7 @@ const CurriculumPreview = () => {
           viewOnly
           handleItemClick={handleContentChange}
           activeChapterItem={activeContent}
+          previewMode={true}
         />
       </div>
     </div>

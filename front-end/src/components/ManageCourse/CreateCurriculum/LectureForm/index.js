@@ -9,14 +9,12 @@ import RichTextEditor from "src/components/RichTextEditor";
 
 import { addLecture, editLecture } from "redux/slice/course";
 
-// Function to extract video ID from YouTube URL
 const getYouTubeVideoId = (url) => {
   const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
   const match = url.match(regExp);
   return match && match[2].length === 11 ? match[2] : null;
 };
 
-// Function to format duration from YouTube API response
 const formatDuration = (duration) => {
   const match = duration.match(/PT(\d+H)?(\d+M)?(\d+S)?/);
 
@@ -47,7 +45,6 @@ const LectureForm = () => {
     },
   });
 
-  // Watch class and embedUrl fields for changes
   const contentClass = watch("class");
   const embedUrl = watch("embedUrl");
 
@@ -55,7 +52,6 @@ const LectureForm = () => {
     if (embedUrl && contentClass === "Lecture") {
       const videoId = getYouTubeVideoId(embedUrl);
       if (videoId) {
-        // Fetch video duration from YouTube API
         fetch(
           `https://www.googleapis.com/youtube/v3/videos?id=${videoId}&part=contentDetails&key=${process.env.NEXT_PUBLIC_YOUTUBE_API_KEY}`,
         )
@@ -76,29 +72,31 @@ const LectureForm = () => {
   }, [embedUrl, contentClass, setValue]);
 
   useEffect(() => {
-    if (isEditMode) {
-      setValue("title", currLectureData.title, {
-        shouldValidate: true,
-        shouldDirty: true,
-      });
-      setValue("class", currLectureData.class, {
-        shouldValidate: true,
-        shouldDirty: true,
-      });
-      setValue("duration", currLectureData.duration, {
-        shouldValidate: true,
-        shouldDirty: true,
-      });
-      setValue("embedUrl", currLectureData.embedUrl, {
-        shouldValidate: true,
-        shouldDirty: true,
-      });
-      setValue("textContent", currLectureData.textContent, {
-        shouldValidate: true,
-        shouldDirty: true,
+    if (isEditMode && currLectureData) {
+      setValue("title", currLectureData.title);
+      setValue("class", currLectureData.class);
+      setValue("duration", currLectureData.duration || "");
+      setValue("embedUrl", currLectureData.embedUrl || "");
+      setValue("textContent", currLectureData.textContent || "");
+    } else {
+      reset({
+        title: "",
+        class: "",
+        duration: "",
+        embedUrl: "",
+        textContent: "",
       });
     }
-  }, [isEditMode, setValue, currLectureData]);
+  }, [isEditMode, currLectureData, setValue, reset]);
+
+  const onSubmit = (data) => {
+    if (isEditMode) {
+      dispatch(editLecture({ data }));
+    } else {
+      dispatch(addLecture({ data }));
+    }
+    reset();
+  };
 
   return (
     <div className="flex flex-col gap-3 h-min">
@@ -106,10 +104,7 @@ const LectureForm = () => {
         {isEditMode ? "Edit Chapter Item" : "Add new Chapter Item"}
       </h2>
 
-      <form
-        onSubmit={(e) => e.preventDefault()}
-        className="flex flex-col gap-2"
-      >
+      <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-2">
         <Controller
           name="title"
           control={control}
@@ -230,19 +225,19 @@ const LectureForm = () => {
             )}
           />
         )}
+
+        <div className="flex justify-end gap-2 mt-4">
+          <Button
+            label="Cancel"
+            variant="outlined"
+            onClick={() => {
+              reset();
+              dispatch({ type: "courses/setIsEditMode", payload: false });
+            }}
+          />
+          <Button label={isEditMode ? "Update" : "Add"} type="submit" />
+        </div>
       </form>
-
-      <Button
-        label={isEditMode ? "Update" : "Add"}
-        className="w-min ml-auto"
-        onClick={handleSubmit((data) => {
-          isEditMode
-            ? dispatch(editLecture({ data }))
-            : dispatch(addLecture({ data }));
-
-          reset();
-        })}
-      />
     </div>
   );
 };

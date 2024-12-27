@@ -47,7 +47,7 @@ const AccordionDetails = styled(MuiAccordionDetails)(({ theme }) => ({
 }));
 
 export default function CurriculumAccordion(props) {
-  const { viewOnly, handleItemClick, activeChapterItem } = props;
+  const { viewOnly, handleItemClick, activeChapterItem, previewMode } = props;
   const [expanded, setExpanded] = useState([]);
   const [activeChapter, setActiveChapter] = useState(null);
 
@@ -66,9 +66,13 @@ export default function CurriculumAccordion(props) {
   }, [activeChapterItem, data?.curriculum, expanded]);
 
   const handleAccordionChange = (index) => (event, newExpanded) => {
-    setExpanded(
-      newExpanded ? [...expanded, index] : expanded.filter((i) => i !== index),
-    );
+    if (!previewMode) {
+      setExpanded(
+        newExpanded
+          ? [...expanded, index]
+          : expanded.filter((i) => i !== index),
+      );
+    }
   };
 
   const renderLectures = (lectures, chapterIndex) => {
@@ -141,4 +145,5 @@ CurriculumAccordion.propTypes = {
   viewOnly: PropTypes.bool,
   handleItemClick: PropTypes.func,
   activeChapterItem: PropTypes.object,
+  previewMode: PropTypes.bool,
 };
