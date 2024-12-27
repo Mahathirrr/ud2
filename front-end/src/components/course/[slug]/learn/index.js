@@ -9,17 +9,17 @@ import KeyboardBackspaceIcon from "@mui/icons-material/KeyboardBackspace";
 
 import CurriculumAccordion from "src/components/Curriculum/CurriculumAccordion";
 import CourseNavbar from "src/components/CourseNavbar";
-
-import { fetchCourse } from "redux/slice/course";
 import VideoPlayer from "src/components/VideoPlayer";
 import CenterAligned from "src/components/CenterAligned";
 import { CircularProgress } from "@mui/material";
+import { fetchCourse } from "redux/slice/course";
 
 const CourseLearningPage = () => {
   const router = useRouter();
   const dispatch = useDispatch();
   const [showSidebar, setShowSidebar] = useState(true);
-  const [chapterItem, setChapterItem] = useState();
+  const [currentContent, setCurrentContent] = useState(null);
+
   const { isAuthenticated, profile } = useSelector((state) => state.auth);
   const {
     fetch: { loading, error, success },
@@ -51,36 +51,36 @@ const CourseLearningPage = () => {
   }, [dispatch, profile?.enrolledCourses, course?._id]);
 
   useEffect(() => {
-    if (success && !chapterItem && course?.curriculum?.[0]?.content?.[0]) {
-      setChapterItem(course.curriculum[0].content[0]);
+    if (success && !currentContent && course?.curriculum?.[0]?.content?.[0]) {
+      setCurrentContent(course.curriculum[0].content[0]);
     }
-  }, [course?.curriculum, success, chapterItem]);
+  }, [course?.curriculum, success, currentContent]);
 
   const toggleSidebar = () => setShowSidebar(!showSidebar);
 
-  const handleItemClick = (lecture) => {
-    setChapterItem(lecture);
+  const handleItemClick = (content) => {
+    setCurrentContent(content);
   };
 
   const renderMainContent = () => {
-    if (!chapterItem) return null;
+    if (!currentContent) return null;
 
-    if (chapterItem.class === "Lecture" || chapterItem.class === "Quiz") {
-      return <VideoPlayer url={chapterItem.embedUrl} />;
+    switch (currentContent.class) {
+      case "Lecture":
+      case "Quiz":
+        return <VideoPlayer url={currentContent.embedUrl} />;
+      case "Text":
+        return (
+          <div
+            className="prose max-w-none p-6"
+            dangerouslySetInnerHTML={{
+              __html: currentContent.textContent,
+            }}
+          />
+        );
+      default:
+        return null;
     }
-
-    if (chapterItem.class === "Text") {
-      return (
-        <div
-          className="prose max-w-none p-6"
-          dangerouslySetInnerHTML={{
-            __html: chapterItem.textContent,
-          }}
-        />
-      );
-    }
-
-    return null;
   };
 
   const renderPage = () => {
@@ -112,8 +112,9 @@ const CourseLearningPage = () => {
             })}
           >
             <CurriculumAccordion
+              viewOnly
               handleItemClick={handleItemClick}
-              activeChapterItem={chapterItem}
+              activeChapterItem={currentContent}
             />
           </div>
         </div>
@@ -130,8 +131,9 @@ const CourseLearningPage = () => {
               style={{ height: "600px" }}
             >
               <CurriculumAccordion
+                viewOnly
                 handleItemClick={handleItemClick}
-                activeChapterItem={chapterItem}
+                activeChapterItem={currentContent}
               />
             </div>
           </div>

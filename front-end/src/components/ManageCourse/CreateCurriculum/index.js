@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import Alert from "@mui/material/Alert";
@@ -6,10 +6,11 @@ import AddCircleOutlineOutlinedIcon from "@mui/icons-material/AddCircleOutlineOu
 
 import CenterAligned from "src/components/CenterAligned";
 import Button from "src/components/Button";
-import CurriculumList from "src/components/ManageCourse/CreateCurriculum/CurriculumList";
+import CurriculumList from "./CurriculumList";
 import ChapterForm from "./ChapterForm";
 import LectureForm from "./LectureForm";
 import LectureContent from "./LectureContent";
+import CurriculumPreview from "./CurriculumPreview";
 
 import {
   setIsEditMode,
@@ -19,6 +20,8 @@ import {
 
 const CreateCurriculum = () => {
   const dispatch = useDispatch();
+  const [previewMode, setPreviewMode] = useState(false);
+
   const {
     renderChapterForm,
     renderLectureForm,
@@ -34,6 +37,10 @@ const CreateCurriculum = () => {
   const showChapterForm = () => {
     dispatch(setIsEditMode(false));
     dispatch(setRenderChapterForm());
+  };
+
+  const togglePreviewMode = () => {
+    setPreviewMode(!previewMode);
   };
 
   const renderForm = () => {
@@ -61,6 +68,10 @@ const CreateCurriculum = () => {
   };
 
   const renderContent = () => {
+    if (previewMode) {
+      return <CurriculumPreview />;
+    }
+
     if (currLectureData) {
       return <LectureContent lecture={currLectureData} />;
     }
@@ -70,14 +81,21 @@ const CreateCurriculum = () => {
 
   return (
     <div>
-      <div className="p-6 pt-0 border-b border-labelText mb-3 flex justify-between">
+      <div className="p-6 pt-0 border-b border-labelText mb-3 flex justify-between items-center">
         <h1 className="text-2xl font-bold">Curriculum</h1>
-        <Button
-          label="Save"
-          type="submit"
-          onClick={onSubmit}
-          loading={loading}
-        />
+        <div className="flex gap-4">
+          <Button
+            label={previewMode ? "Edit Mode" : "Preview Mode"}
+            variant="outlined"
+            onClick={togglePreviewMode}
+          />
+          <Button
+            label="Save"
+            type="submit"
+            onClick={onSubmit}
+            loading={loading}
+          />
+        </div>
       </div>
       <Alert severity="info" variant="outlined">
         Here's where you add course content—like lectures, course sections,
@@ -92,17 +110,19 @@ const CreateCurriculum = () => {
           style={{ maxHeight: "485px" }}
         >
           <div className="overflow-auto h-5/6">
-            <CurriculumList />
+            <CurriculumList previewMode={previewMode} />
           </div>
-          <div className="bg-tertiaryBg p-2 sticky">
-            <Button
-              label="Add new Chapter"
-              variant="transparent"
-              className="text-lg"
-              startIcon={<AddCircleOutlineOutlinedIcon />}
-              onClick={showChapterForm}
-            />
-          </div>
+          {!previewMode && (
+            <div className="bg-tertiaryBg p-2 sticky">
+              <Button
+                label="Add new Chapter"
+                variant="transparent"
+                className="text-lg"
+                startIcon={<AddCircleOutlineOutlinedIcon />}
+                onClick={showChapterForm}
+              />
+            </div>
+          )}
         </div>
       </div>
     </div>

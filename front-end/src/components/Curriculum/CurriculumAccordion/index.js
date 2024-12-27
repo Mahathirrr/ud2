@@ -10,7 +10,6 @@ import MuiAccordionDetails from "@mui/material/AccordionDetails";
 
 import ChapterItem from "../ChapterItem";
 import { calculateTotalDuration, getChapterDuration } from "src/utils/duration";
-import { scrollElementIntoView } from "src/utils";
 
 const Accordion = styled((props) => (
   <MuiAccordion disableGutters elevation={0} square {...props} />
@@ -50,49 +49,53 @@ const AccordionDetails = styled(MuiAccordionDetails)(({ theme }) => ({
 export default function CurriculumAccordion(props) {
   const { viewOnly, handleItemClick, activeChapterItem } = props;
   const [expanded, setExpanded] = useState([]);
+  const [activeChapter, setActiveChapter] = useState(null);
 
-  const { data, currChapterIndex } = useSelector(
-    (state) => state.courses.course,
-  );
+  const { data } = useSelector((state) => state.courses.course);
 
   useEffect(() => {
-    setExpanded([...expanded, currChapterIndex]);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currChapterIndex]);
+    if (activeChapterItem) {
+      const chapterIndex = data?.curriculum.findIndex((chapter) =>
+        chapter.content.some((item) => item._id === activeChapterItem._id),
+      );
+      if (chapterIndex !== -1 && !expanded.includes(chapterIndex)) {
+        setExpanded([...expanded, chapterIndex]);
+        setActiveChapter(chapterIndex);
+      }
+    }
+  }, [activeChapterItem, data?.curriculum, expanded]);
 
-  const renderLectures = (lectures) => {
+  const handleAccordionChange = (index) => (event, newExpanded) => {
+    setExpanded(
+      newExpanded ? [...expanded, index] : expanded.filter((i) => i !== index),
+    );
+  };
+
+  const renderLectures = (lectures, chapterIndex) => {
     return lectures.map((lecture, index) => {
       const handleClick = (event) => {
-        if (viewOnly) return null;
-
-        event.stopPropagation();
-        handleItemClick(lecture);
-        scrollElementIntoView(lecture._id);
+        if (viewOnly) {
+          event.stopPropagation();
+          handleItemClick(lecture);
+        }
       };
 
       return (
         <AccordionDetails
-          className={classnames({ "cursor-pointer": !viewOnly })}
-          id={lecture._id}
+          className={classnames({ "cursor-pointer": viewOnly })}
           onClick={handleClick}
-          key={index}
+          key={lecture._id || index}
         >
           <ChapterItem
             lecture={lecture}
             active={activeChapterItem?._id === lecture._id}
+            chapterIndex={chapterIndex}
+            lectureIndex={index}
+            viewOnly={viewOnly}
           />
         </AccordionDetails>
       );
     });
-  };
-
-  const handleChange = (index) => (event, newExpanded) => {
-    if (newExpanded) {
-      setExpanded([...expanded, index]);
-    } else {
-      const updatedExpandedItems = expanded.filter((id) => id !== index);
-      setExpanded(updatedExpandedItems);
-    }
   };
 
   const renderChapter = (chapter, index) => {
@@ -102,12 +105,11 @@ export default function CurriculumAccordion(props) {
     const lectureText = totalLectures === 1 ? "lecture" : "lectures";
 
     return (
-      <div className="border border-solid border-border">
+      <div className="border border-solid border-border" key={index}>
         <Accordion
           expanded={expanded.includes(index)}
-          onChange={handleChange(index)}
+          onChange={handleAccordionChange(index)}
           TransitionProps={{ unmountOnExit: true }}
-          key={index}
         >
           <AccordionSummary>
             <div className="flex flex-col gap-1 w-full pl-2">
@@ -118,7 +120,7 @@ export default function CurriculumAccordion(props) {
                 <p>
                   {totalLectures} {lectureText}
                 </p>
-                {totalDuration && <p>&#8226; {totalDuration}</p>}
+                {totalDuration && <p>• {totalDuration}</p>}
               </div>
             </div>
           </AccordionSummary>
@@ -136,10 +138,7 @@ export default function CurriculumAccordion(props) {
 }
 
 CurriculumAccordion.propTypes = {
-  activeContent: PropTypes.shape({
-    chapterId: PropTypes.string,
-    lectureId: PropTypes.string,
-  }),
-  setActiveContent: PropTypes.func,
   viewOnly: PropTypes.bool,
+  handleItemClick: PropTypes.func,
+  activeChapterItem: PropTypes.object,
 };

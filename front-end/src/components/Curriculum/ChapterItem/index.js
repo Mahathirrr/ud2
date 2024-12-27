@@ -1,11 +1,40 @@
+import { useDispatch } from "react-redux";
 import PropTypes from "prop-types";
 import classnames from "classnames";
+
+import IconButton from "@mui/material/IconButton";
+import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
+import DeleteOutlinedIcon from "@mui/icons-material/DeleteOutlined";
 import OndemandVideoOutlinedIcon from "@mui/icons-material/OndemandVideoOutlined";
 import QuizOutlinedIcon from "@mui/icons-material/QuizOutlined";
 import TextSnippetOutlinedIcon from "@mui/icons-material/TextSnippetOutlined";
 
+import {
+  deleteLecture,
+  setCurrChapterIndex,
+  setCurrLectureData,
+  setCurrLectureIndex,
+  setIsEditMode,
+  setRenderLectureForm,
+} from "redux/slice/course";
+
 export default function ChapterItem(props) {
-  const { lecture, active } = props;
+  const { lecture, active, chapterIndex, lectureIndex, viewOnly } = props;
+  const dispatch = useDispatch();
+
+  const handleEditClick = (e) => {
+    e.stopPropagation();
+    dispatch(setCurrChapterIndex(chapterIndex));
+    dispatch(setCurrLectureIndex(lectureIndex));
+    dispatch(setCurrLectureData(lecture));
+    dispatch(setIsEditMode(true));
+    dispatch(setRenderLectureForm());
+  };
+
+  const handleDeleteClick = (e) => {
+    e.stopPropagation();
+    dispatch(deleteLecture({ chapterIndex, lectureIndex }));
+  };
 
   const getIcon = () => {
     switch (lecture.class) {
@@ -32,9 +61,29 @@ export default function ChapterItem(props) {
           {lecture.title}
         </p>
       </div>
-      {lecture.duration && (
-        <p className="text-labelText text-sm">{lecture.duration}</p>
-      )}
+      <div className="flex items-center gap-2">
+        {lecture.duration && (
+          <p className="text-labelText text-sm">{lecture.duration}</p>
+        )}
+        {!viewOnly && (
+          <div className="flex gap-3">
+            <IconButton
+              aria-label="edit"
+              size="small"
+              onClick={handleEditClick}
+            >
+              <EditOutlinedIcon fontSize="small" />
+            </IconButton>
+            <IconButton
+              aria-label="delete"
+              size="small"
+              onClick={handleDeleteClick}
+            >
+              <DeleteOutlinedIcon fontSize="small" />
+            </IconButton>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
@@ -42,4 +91,7 @@ export default function ChapterItem(props) {
 ChapterItem.propTypes = {
   lecture: PropTypes.object.isRequired,
   active: PropTypes.bool.isRequired,
+  chapterIndex: PropTypes.number.isRequired,
+  lectureIndex: PropTypes.number.isRequired,
+  viewOnly: PropTypes.bool,
 };

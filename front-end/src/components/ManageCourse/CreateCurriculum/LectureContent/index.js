@@ -3,8 +3,6 @@ import DOMPurify from "dompurify";
 import VideoPlayer from "src/components/VideoPlayer";
 
 const LectureContent = ({ lecture }) => {
-  if (!lecture) return null;
-
   const renderContent = () => {
     switch (lecture.class) {
       case "Lecture":
@@ -32,12 +30,9 @@ const LectureContent = ({ lecture }) => {
     <div className="w-full bg-white rounded-lg shadow-sm p-6">
       <div className="border-b pb-4">
         <h2 className="text-xl font-semibold">{lecture.title}</h2>
-        {lecture.class === "Text" && (
-          <p className="text-sm text-gray-500 mt-1">Text Content</p>
-        )}
-        {(lecture.class === "Lecture" || lecture.class === "Quiz") && (
-          <p className="text-sm text-gray-500 mt-1">Video Content</p>
-        )}
+        <p className="text-sm text-gray-500 mt-1">
+          {lecture.class === "Text" ? "Text Content" : "Video Content"}
+        </p>
       </div>
       {renderContent()}
     </div>
