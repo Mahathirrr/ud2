@@ -4,6 +4,14 @@ import { useSelector } from "react-redux";
 const PaymentSummary = ({ course }) => {
   const { profile } = useSelector((state) => state.auth);
 
+  const calculatePlatformFee = (price) => {
+    return Math.round(price * 0.1); // 10% platform fee
+  };
+
+  const calculateTotal = (price) => {
+    return price + calculatePlatformFee(price);
+  };
+
   return (
     <div className="bg-white p-6 rounded-lg shadow-md">
       <h2 className="text-xl font-semibold mb-4">Payment Summary</h2>
@@ -21,9 +29,9 @@ const PaymentSummary = ({ course }) => {
         {course.pricing !== "Free" && (
           <>
             <div className="flex justify-between items-center">
-              <span className="text-gray-600">Platform Fee</span>
+              <span className="text-gray-600">Platform Fee (10%)</span>
               <span className="font-semibold">
-                IDR {(course.price * 0.1).toLocaleString()}
+                IDR {calculatePlatformFee(course.price).toLocaleString()}
               </span>
             </div>
 
@@ -31,7 +39,7 @@ const PaymentSummary = ({ course }) => {
               <div className="flex justify-between items-center">
                 <span className="text-lg font-semibold">Total</span>
                 <span className="text-lg font-bold text-primary">
-                  IDR {(course.price * 1.1).toLocaleString()}
+                  IDR {calculateTotal(course.price).toLocaleString()}
                 </span>
               </div>
             </div>
@@ -43,9 +51,15 @@ const PaymentSummary = ({ course }) => {
             By completing your purchase you agree to these Terms of Service.
           </p>
           {course.pricing !== "Free" && (
-            <p className="mt-2">
-              Payments are secured and processed by Midtrans Payment Gateway
-            </p>
+            <>
+              <p className="mt-2">
+                Payments are secured and processed by Midtrans Payment Gateway
+              </p>
+              <p className="mt-2">
+                After successful payment, you'll get immediate access to the
+                course
+              </p>
+            </>
           )}
         </div>
       </div>

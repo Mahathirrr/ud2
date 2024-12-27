@@ -28,7 +28,7 @@ const columns = [
     field: "amount",
     headerName: "Amount",
     width: 150,
-    valueGetter: (params) => `${params.row.currency} ${params.row.amount}`,
+    valueGetter: (params) => `IDR ${params.row.amount.toLocaleString()}`,
   },
   {
     field: "createdAt",
