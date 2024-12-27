@@ -112,7 +112,7 @@ const CourseLearningPage = () => {
             })}
           >
             <CurriculumAccordion
-              viewOnly={true}
+              viewOnly
               handleItemClick={handleItemClick}
               activeChapterItem={currentContent}
             />
@@ -131,7 +131,7 @@ const CourseLearningPage = () => {
               style={{ height: "600px" }}
             >
               <CurriculumAccordion
-                viewOnly={true}
+                viewOnly
                 handleItemClick={handleItemClick}
                 activeChapterItem={currentContent}
               />

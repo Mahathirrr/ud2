@@ -1,4 +1,4 @@
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import PropTypes from "prop-types";
 import classnames from "classnames";
 
@@ -21,9 +21,11 @@ import {
 export default function ChapterItem(props) {
   const { lecture, active, chapterIndex, lectureIndex, viewOnly } = props;
   const dispatch = useDispatch();
+  const { profile } = useSelector((state) => state.auth);
+  const isInstructor = profile?.role === "instructor";
 
   const handleEditClick = (e) => {
-    if (!viewOnly) {
+    if (!viewOnly && isInstructor) {
       e.stopPropagation();
       dispatch(setCurrChapterIndex(chapterIndex));
       dispatch(setCurrLectureIndex(lectureIndex));
@@ -34,7 +36,7 @@ export default function ChapterItem(props) {
   };
 
   const handleDeleteClick = (e) => {
-    if (!viewOnly) {
+    if (!viewOnly && isInstructor) {
       e.stopPropagation();
       dispatch(deleteLecture({ chapterIndex, lectureIndex }));
     }
@@ -54,7 +56,11 @@ export default function ChapterItem(props) {
   };
 
   return (
-    <div className="flex justify-between gap-5 items-center xl:mx-6 group">
+    <div
+      className={classnames(
+        "flex justify-between gap-5 items-center xl:mx-6 group cursor-pointer",
+      )}
+    >
       <div className="flex gap-5 items-center">
         {getIcon()}
         <p
@@ -69,7 +75,7 @@ export default function ChapterItem(props) {
         {lecture.duration && (
           <p className="text-labelText text-sm">{lecture.duration}</p>
         )}
-        {!viewOnly && (
+        {!viewOnly && isInstructor && (
           <div className="flex gap-3">
             <IconButton
               aria-label="edit"

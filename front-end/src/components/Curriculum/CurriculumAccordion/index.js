@@ -50,6 +50,8 @@ export default function CurriculumAccordion(props) {
   const { viewOnly, handleItemClick, activeChapterItem, previewMode } = props;
   const [expandedPanels, setExpandedPanels] = useState(new Set());
   const { data } = useSelector((state) => state.courses.course);
+  const { profile } = useSelector((state) => state.auth);
+  const isInstructor = profile?.role === "instructor";
 
   useEffect(() => {
     if (activeChapterItem && data?.curriculum) {
@@ -79,14 +81,15 @@ export default function CurriculumAccordion(props) {
     return lectures.map((lecture, index) => {
       const handleClick = (event) => {
         event.stopPropagation();
-        if (viewOnly && typeof handleItemClick === "function") {
+        // Memperbolehkan klik untuk semua pengguna yang sudah login
+        if (typeof handleItemClick === "function") {
           handleItemClick(lecture);
         }
       };
 
       return (
         <AccordionDetails
-          className={classnames({ "cursor-pointer": viewOnly })}
+          className={classnames("cursor-pointer hover:bg-gray-50")}
           onClick={handleClick}
           key={lecture._id || index}
         >
@@ -140,10 +143,3 @@ export default function CurriculumAccordion(props) {
     </div>
   );
 }
-
-CurriculumAccordion.propTypes = {
-  viewOnly: PropTypes.bool,
-  handleItemClick: PropTypes.func,
-  activeChapterItem: PropTypes.object,
-  previewMode: PropTypes.bool,
-};
