@@ -23,17 +23,21 @@ export default function ChapterItem(props) {
   const dispatch = useDispatch();
 
   const handleEditClick = (e) => {
-    e.stopPropagation();
-    dispatch(setCurrChapterIndex(chapterIndex));
-    dispatch(setCurrLectureIndex(lectureIndex));
-    dispatch(setCurrLectureData(lecture));
-    dispatch(setIsEditMode(true));
-    dispatch(setRenderLectureForm());
+    if (!viewOnly) {
+      e.stopPropagation();
+      dispatch(setCurrChapterIndex(chapterIndex));
+      dispatch(setCurrLectureIndex(lectureIndex));
+      dispatch(setCurrLectureData(lecture));
+      dispatch(setIsEditMode(true));
+      dispatch(setRenderLectureForm());
+    }
   };
 
   const handleDeleteClick = (e) => {
-    e.stopPropagation();
-    dispatch(deleteLecture({ chapterIndex, lectureIndex }));
+    if (!viewOnly) {
+      e.stopPropagation();
+      dispatch(deleteLecture({ chapterIndex, lectureIndex }));
+    }
   };
 
   const getIcon = () => {

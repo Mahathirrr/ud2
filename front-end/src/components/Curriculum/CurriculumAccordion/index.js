@@ -48,38 +48,38 @@ const AccordionDetails = styled(MuiAccordionDetails)(({ theme }) => ({
 
 export default function CurriculumAccordion(props) {
   const { viewOnly, handleItemClick, activeChapterItem, previewMode } = props;
-  const [expanded, setExpanded] = useState([]);
-  const [activeChapter, setActiveChapter] = useState(null);
-
+  const [expandedPanels, setExpandedPanels] = useState(new Set());
   const { data } = useSelector((state) => state.courses.course);
 
   useEffect(() => {
-    if (activeChapterItem) {
-      const chapterIndex = data?.curriculum.findIndex((chapter) =>
+    if (activeChapterItem && data?.curriculum) {
+      const chapterIndex = data.curriculum.findIndex((chapter) =>
         chapter.content.some((item) => item._id === activeChapterItem._id),
       );
-      if (chapterIndex !== -1 && !expanded.includes(chapterIndex)) {
-        setExpanded([...expanded, chapterIndex]);
-        setActiveChapter(chapterIndex);
+      if (chapterIndex !== -1 && !expandedPanels.has(chapterIndex)) {
+        setExpandedPanels(new Set([...expandedPanels, chapterIndex]));
       }
     }
-  }, [activeChapterItem, data?.curriculum, expanded]);
+  }, [activeChapterItem, data?.curriculum]);
 
   const handleAccordionChange = (index) => (event, newExpanded) => {
-    if (!previewMode) {
-      setExpanded(
-        newExpanded
-          ? [...expanded, index]
-          : expanded.filter((i) => i !== index),
-      );
-    }
+    event.stopPropagation();
+    setExpandedPanels((prevPanels) => {
+      const newPanels = new Set(prevPanels);
+      if (newExpanded) {
+        newPanels.add(index);
+      } else {
+        newPanels.delete(index);
+      }
+      return newPanels;
+    });
   };
 
   const renderLectures = (lectures, chapterIndex) => {
     return lectures.map((lecture, index) => {
       const handleClick = (event) => {
-        if (viewOnly) {
-          event.stopPropagation();
+        event.stopPropagation();
+        if (viewOnly && typeof handleItemClick === "function") {
           handleItemClick(lecture);
         }
       };
@@ -111,7 +111,7 @@ export default function CurriculumAccordion(props) {
     return (
       <div className="border border-solid border-border" key={index}>
         <Accordion
-          expanded={expanded.includes(index)}
+          expanded={expandedPanels.has(index)}
           onChange={handleAccordionChange(index)}
           TransitionProps={{ unmountOnExit: true }}
         >
