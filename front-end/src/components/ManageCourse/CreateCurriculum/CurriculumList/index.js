@@ -17,6 +17,7 @@ import {
   deleteChapter,
   setCurrChapterData,
   setCurrChapterIndex,
+  setCurrLectureData,
   setIsEditMode,
   setRenderChapterForm,
   setRenderLectureForm,
@@ -26,7 +27,6 @@ import { getChapterDuration } from "src/utils";
 const Accordion = styled((props) => (
   <MuiAccordion disableGutters elevation={0} square {...props} />
 ))({
-  // border: `1px solid ${theme.palette.divider}`,
   "&:not(:last-child)": {
     borderBottom: 0,
   },
@@ -68,72 +68,58 @@ export default function CurriculumList() {
   );
 
   useEffect(() => {
-    setExpanded([...expanded, currChapterIndex]);
+    if (currChapterIndex !== null && !expanded.includes(currChapterIndex)) {
+      setExpanded([...expanded, currChapterIndex]);
+    }
   }, [currChapterIndex]);
 
-  const renderLectures = (lectures, chapterIndex) => {
-    return lectures.map((lecture, index) => {
-      const handleClick = (event) => {
-        event.stopPropagation();
-      };
-
-      return (
-        <AccordionDetails
-          className="cursor-pointer"
-          id={index}
-          onClick={handleClick}
-          key={index}
-        >
-          <ChapterItem
-            lecture={lecture}
-            chapterIndex={chapterIndex}
-            lectureIndex={index}
-          />
-        </AccordionDetails>
-      );
-    });
+  const handleChapterClick = (index, chapter) => {
+    dispatch(setCurrChapterIndex(index));
+    dispatch(setCurrChapterData(chapter));
+    if (chapter.content?.[0]) {
+      dispatch(setCurrLectureData(chapter.content[0]));
+    }
   };
 
-  const handleChange = (index) => (event, newExpanded) => {
+  const handleEditChapter = (e, index, chapter) => {
+    e.stopPropagation();
+    dispatch(setCurrChapterIndex(index));
+    dispatch(setCurrChapterData(chapter));
+    dispatch(setIsEditMode(true));
+    dispatch(setRenderChapterForm());
+  };
+
+  const handleDeleteChapter = (e, index) => {
+    e.stopPropagation();
+    dispatch(deleteChapter(index));
+  };
+
+  const handleAddChapterItem = (index) => {
+    dispatch(setCurrChapterIndex(index));
+    dispatch(setIsEditMode(false));
+    dispatch(setRenderLectureForm());
+  };
+
+  const handleAccordionChange = (index) => (event, newExpanded) => {
     if (newExpanded) {
       setExpanded([...expanded, index]);
     } else {
-      const updatedExpandedItems = expanded.filter((id) => id !== index);
-      setExpanded(updatedExpandedItems);
+      setExpanded(expanded.filter((i) => i !== index));
     }
   };
 
   const renderChapter = (chapter, index) => {
-    const handleAddChapterItem = () => {
-      dispatch(setCurrChapterIndex(index));
-      dispatch(setIsEditMode(false));
-      dispatch(setRenderLectureForm());
-    };
-
-    const handleEditChapter = (e) => {
-      e.stopPropagation();
-      dispatch(setCurrChapterIndex(index));
-      dispatch(setCurrChapterData(chapter));
-      dispatch(setIsEditMode(true));
-      dispatch(setRenderChapterForm());
-    };
-
-    const handleDeleteChapter = (e) => {
-      e.stopPropagation();
-      dispatch(deleteChapter(index));
-    };
-
     const totalLectures = chapter.content.length;
     const totalDuration = getChapterDuration(chapter?.duration);
     const lectureText = totalLectures === 1 ? "lecture" : "lectures";
 
     return (
-      <div className="border border-solid border-border">
+      <div className="border border-solid border-border" key={index}>
         <Accordion
           expanded={expanded.includes(index)}
-          onChange={handleChange(index)}
+          onChange={handleAccordionChange(index)}
           TransitionProps={{ unmountOnExit: true }}
-          key={index}
+          onClick={() => handleChapterClick(index, chapter)}
         >
           <AccordionSummary>
             <div className="flex gap-5 justify-between items-center w-full mr-5">
@@ -150,35 +136,46 @@ export default function CurriculumList() {
               </div>
             </div>
             <div className="flex gap-3">
-              <IconButton aria-label="edit" size="small">
-                <EditOutlinedIcon
-                  fontSize="small"
-                  onClick={handleEditChapter}
-                />
+              <IconButton
+                aria-label="edit"
+                size="small"
+                onClick={(e) => handleEditChapter(e, index, chapter)}
+              >
+                <EditOutlinedIcon fontSize="small" />
               </IconButton>
-              <IconButton aria-label="delete" size="small">
-                <DeleteOutlinedIcon
-                  fontSize="small"
-                  onClick={handleDeleteChapter}
-                />
+              <IconButton
+                aria-label="delete"
+                size="small"
+                onClick={(e) => handleDeleteChapter(e, index)}
+              >
+                <DeleteOutlinedIcon fontSize="small" />
               </IconButton>
             </div>
           </AccordionSummary>
-          {chapter?.content && renderLectures(chapter.content, index)}
+          {chapter?.content?.map((lecture, lectureIndex) => (
+            <AccordionDetails key={lectureIndex}>
+              <ChapterItem
+                lecture={lecture}
+                chapterIndex={index}
+                lectureIndex={lectureIndex}
+              />
+            </AccordionDetails>
+          ))}
         </Accordion>
         <Button
           label="Add Chapter Item"
           variant="transparent"
           className="w-full"
           startIcon={<AddIcon />}
-          onClick={handleAddChapterItem}
+          onClick={() => handleAddChapterItem(index)}
         />
       </div>
     );
   };
 
-  const renderAccordion = () =>
-    data?.curriculum.map((chapter, index) => renderChapter(chapter, index));
-
-  return <>{renderAccordion()}</>;
+  return (
+    <>
+      {data?.curriculum?.map((chapter, index) => renderChapter(chapter, index))}
+    </>
+  );
 }

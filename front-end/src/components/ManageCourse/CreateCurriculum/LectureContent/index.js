@@ -9,11 +9,15 @@ const LectureContent = ({ lecture }) => {
     switch (lecture.class) {
       case "Lecture":
       case "Quiz":
-        return <VideoPlayer url={lecture.embedUrl} />;
+        return (
+          <div className="mt-4">
+            <VideoPlayer url={lecture.embedUrl} />
+          </div>
+        );
       case "Text":
         return (
           <div
-            className="prose max-w-none p-6"
+            className="prose max-w-none p-6 mt-4"
             dangerouslySetInnerHTML={{
               __html: DOMPurify.sanitize(lecture.textContent),
             }}
@@ -24,7 +28,20 @@ const LectureContent = ({ lecture }) => {
     }
   };
 
-  return <div className="w-full">{renderContent()}</div>;
+  return (
+    <div className="w-full bg-white rounded-lg shadow-sm p-6">
+      <div className="border-b pb-4">
+        <h2 className="text-xl font-semibold">{lecture.title}</h2>
+        {lecture.class === "Text" && (
+          <p className="text-sm text-gray-500 mt-1">Text Content</p>
+        )}
+        {(lecture.class === "Lecture" || lecture.class === "Quiz") && (
+          <p className="text-sm text-gray-500 mt-1">Video Content</p>
+        )}
+      </div>
+      {renderContent()}
+    </div>
+  );
 };
 
 export default LectureContent;
