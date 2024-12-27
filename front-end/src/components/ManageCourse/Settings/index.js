@@ -1,11 +1,11 @@
-import React, { useEffect } from "react";
-import { useForm, Controller } from "react-hook-form";
+import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-
 import Switch from "@mui/material/Switch";
+import Alert from "@mui/material/Alert";
 
 import DropdownInput from "src/components/DropdownInput";
 import FormPageLayout from "src/components/FormPageLayout";
+import BankAccountForm from "./BankAccountForm";
 
 import { getAddedInstructors } from "redux/slice/instructor";
 import { updateCourse } from "redux/slice/course";
@@ -18,46 +18,42 @@ const Settings = ({ setIsPristine }) => {
   } = useSelector((state) => state.courses.course);
   const { loading, instructors } = useSelector((state) => state.instructor);
 
+  const [formData, setFormData] = useState({
+    instructors: "",
+    published: false,
+    bankAccount: null,
+  });
+
   useEffect(() => {
     if (!instructors.length) {
       dispatch(getAddedInstructors());
     }
   }, [dispatch, instructors]);
 
-  const {
-    control,
-    handleSubmit,
-    setValue,
-    formState: { isDirty },
-  } = useForm({
-    defaultValues: {
-      details: {
-        instructors: "",
-        published: false,
-      },
-    },
-  });
-
   useEffect(() => {
-    setValue("details", {
-      instructors: data?.instructors[0],
-      published: data?.published,
-    });
-  }, [data, setValue]);
+    if (data) {
+      setFormData({
+        instructors: data.instructors[0],
+        published: data.published,
+        bankAccount: data.instructors[0]?.bankAccount,
+      });
+    }
+  }, [data]);
 
-  useEffect(() => {
-    setIsPristine(!isDirty);
-  }, [setIsPristine, isDirty]);
-
-  const onSubmit = (formData) => {
+  const handleSave = () => {
     dispatch(
       updateCourse({
-        ...formData.details,
-        instructors: [formData.details.instructors],
+        ...formData,
+        instructors: [formData.instructors],
         _id: data._id,
       }),
     );
     setIsPristine(true);
+  };
+
+  const handleBankAccountChange = (bankAccount) => {
+    setFormData((prev) => ({ ...prev, bankAccount }));
+    setIsPristine(false);
   };
 
   const renderField = (label, Component) => {
@@ -69,57 +65,58 @@ const Settings = ({ setIsPristine }) => {
     );
   };
 
-  const renderForm = () => {
-    return (
-      <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-8">
+  return (
+    <FormPageLayout title="Settings" handleSave={handleSave} loading={updating}>
+      <div className="flex flex-col gap-8">
         {renderField(
           "Instructor",
-          <Controller
-            name="details.instructors"
-            control={control}
-            rules={{
-              required: "This field is required.",
+          <DropdownInput
+            data={instructors}
+            loading={loading}
+            value={formData.instructors}
+            handleChange={(e) => {
+              setFormData((prev) => ({
+                ...prev,
+                instructors: e.target.value,
+              }));
+              setIsPristine(false);
             }}
-            render={({ field, fieldState: { error } }) => (
-              <DropdownInput
-                data={instructors}
-                loading={loading}
-                error={!!error}
-                helperText={error ? error.message : null}
-                value={field.value}
-                handleChange={field.onChange}
-                valueExtractor={(i) => i._id}
-                labelExtractor={(i) => i.name}
-              />
-            )}
+            valueExtractor={(i) => i._id}
+            labelExtractor={(i) => i.name}
           />,
         )}
 
         {renderField(
           "Course status",
-          <Controller
-            name="details.published"
-            control={control}
-            render={({ field }) => (
-              <div className="flex items-center gap-1">
-                <p>Unpublished</p>
-                <Switch checked={field.value} onChange={field.onChange} />
-                <p>Published</p>
-              </div>
-            )}
-          />,
+          <div className="flex items-center gap-1">
+            <p>Unpublished</p>
+            <Switch
+              checked={formData.published}
+              onChange={(e) => {
+                setFormData((prev) => ({
+                  ...prev,
+                  published: e.target.checked,
+                }));
+                setIsPristine(false);
+              }}
+            />
+            <p>Published</p>
+          </div>,
         )}
-      </form>
-    );
-  };
 
-  return (
-    <FormPageLayout
-      title="Settings"
-      handleSave={handleSubmit(onSubmit)}
-      loading={updating}
-    >
-      {renderForm()}
+        {data?.pricing === "Paid" && (
+          <>
+            <Alert severity="info">
+              For paid courses, please provide your bank account details to
+              receive payments.
+            </Alert>
+            <BankAccountForm
+              bankAccount={formData.bankAccount}
+              onBankAccountChange={handleBankAccountChange}
+            />
+          </>
+        )}
+      </div>
     </FormPageLayout>
   );
 };
